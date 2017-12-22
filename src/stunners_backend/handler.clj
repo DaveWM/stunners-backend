@@ -169,7 +169,8 @@
           :headers {"Content-Type" "application/edn"}
           :body (pr-str {:message (str "User with auth0 id " auth0-id " not found")})}))
 
-  (route/not-found (pr-str {:status 404})))
+  (route/not-found {:status 404
+                    :body (pr-str {:message "route not found"})}))
 
 (def app
   (-> app-routes
