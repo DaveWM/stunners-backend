@@ -149,6 +149,7 @@
        (->> (q '[:find (pull ?s [:user/name :location/outcode :stylist/headline :stylist/images :stylist/description :db/id :user/avatar {:product/_stylist [:product/cost {:product/type [:db/ident]}]}])
                  :where [?s :stylist/headline]])
             inline-enums
+            (mapcat identity)
             pr-str))
   (route/not-found (pr-str {:status 404})))
 
