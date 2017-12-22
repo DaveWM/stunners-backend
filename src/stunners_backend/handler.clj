@@ -3,7 +3,11 @@
             [compojure.route :as route]
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
             [datomic.client :as d]
-            [clojure.core.async :refer [<!!]]))
+            [clojure.core.async :refer [<!!]]
+            [clojure.string :as str]
+            [jerks-whistling-tunes.core :as jwt]
+            [jerks-whistling-tunes.sign :as sign]
+            [stunners-backend.credentials :refer [credentials]]))
 
 (def conn (<!! (d/connect
                 {:db-name "hello"
@@ -118,6 +122,25 @@
   ([query db]
    (<!! (d/q conn {:query query :args [db]}))))
 
+
+(defn authenticate [handler credentials]
+  "Authenticates using auth token in Authorization header, or query param if header not set. Adds the auth token onto the request as :token"
+  (fn [request]
+    (let [{:keys [headers query-params]} request
+          token (-> (get headers "authorization")
+                    (or "")
+                    (str/replace #"^\s*Bearer\s+" ""))
+          valid? (jwt/valid? token
+                             (jwt/signature (sign/hs256 (:client-secret credentials)))
+                             (jwt/aud (:client-id credentials))
+                             (jwt/iss (:domain credentials))
+                             jwt/exp)]
+      (if valid?
+        (handler (assoc request :token token))
+        {:status 401
+         :headers {"Content-Type" "application/json"}
+         :body (pr-str {:message "Auth token not found or is invalid"})}))))
+
 (defroutes app-routes
   (GET "/health-check" [] {:status 200
                            :headers {"Content-Type" "application/edn"}
@@ -130,4 +153,6 @@
   (route/not-found (pr-str {:status 404})))
 
 (def app
-  (wrap-defaults app-routes api-defaults))
+  (-> app-routes
+      (authenticate credentials)
+      (wrap-defaults api-defaults)))

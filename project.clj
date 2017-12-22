@@ -8,7 +8,8 @@
                  [org.clojure/core.async "0.3.465"]
                  [com.datomic/clj-client "0.8.606"]
                  [org.eclipse.jetty/jetty-server "9.3.7.v20160115"]
-                 [ring "1.6.0" :exclusions [org.eclipse.jetty/jetty-server]]]
+                 [ring "1.6.0" :exclusions [org.eclipse.jetty/jetty-server]]
+                 [jerks-whistling-tunes "0.2.4"]]
   :plugins [[lein-ring "0.12.2"]]
   :ring {:handler stunners-backend.handler/app
          :nrepl {:start? true}}
