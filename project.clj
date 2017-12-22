@@ -10,7 +10,8 @@
                  [org.eclipse.jetty/jetty-server "9.3.7.v20160115"]
                  [ring "1.6.0" :exclusions [org.eclipse.jetty/jetty-server]]]
   :plugins [[lein-ring "0.12.2"]]
-  :ring {:handler stunners-backend.handler/app}
+  :ring {:handler stunners-backend.handler/app
+         :nrepl {:start? true}}
   :profiles
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                         [ring/ring-mock "0.3.0"]]}})
