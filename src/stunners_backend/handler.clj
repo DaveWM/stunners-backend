@@ -122,8 +122,8 @@
 
 (defn q
   ([query] (q query (d/db conn)))
-  ([query db]
-   (<!! (d/q conn {:query query :args [db]}))))
+  ([query db & inputs]
+   (<!! (d/q conn {:query query :args (cons db inputs)}))))
 
 
 (defn authenticate [handler credentials]
@@ -156,6 +156,19 @@
             inline-enums
             (mapcat identity)
             pr-str))
+
+  (GET "/user" {:keys [user/auth0-id]}
+       (if-let [user (->> (q '[:find (pull ?e [:db/id :user/name :user/email :user/phone-number :user/avatar :user/auth0-id :location/address])
+                               :where [?e :user/auth0-id ?id]
+                               :in $ ?id]
+                             (d/db conn)
+                             auth0-id)
+                          ffirst)]
+         (pr-str user)
+         {:status 404
+          :headers {"Content-Type" "application/edn"}
+          :body (pr-str {:message (str "User with auth0 id " auth0-id " not found")})}))
+
   (route/not-found (pr-str {:status 404})))
 
 (def app
