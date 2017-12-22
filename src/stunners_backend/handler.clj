@@ -102,21 +102,31 @@
                     filter-group-schema))
 
 
-;(<!! (d/transact conn {:tx-data schema}))
+(<!! (d/transact conn {:tx-data schema}))
+
+(defn inline-enums [query-result]
+  (clojure.walk/prewalk (fn [x]
+                          (if (and (map? x) (= (count x) 1))
+                            (if-let [ident (:db/ident x)]
+                              ident
+                              x)
+                            x))
+                        query-result))
+
+(defn q
+  ([query] (q query (d/db conn)))
+  ([query db]
+   (<!! (d/q conn {:query query :args [db]}))))
 
 (defroutes app-routes
   (GET "/health-check" [] {:status 200
                            :headers {"Content-Type" "application/edn"}
                            :body (pr-str {:status :ok})})
-  (GET "/users" []
-       (let [db (d/db conn)
-             query '[:find ?name :where [_ :user/name ?name]]]
-         (println query)
-         {:status 200
-          :headers {"Content-Type" "application/edn"}
-          :body (->> (d/q conn {:query query :args [db]})
-                     <!!
-                     pr-str)}))
+  (GET "/stylists" []
+       (->> (q '[:find (pull ?s [:user/name :location/outcode :stylist/headline :stylist/images :stylist/description :db/id :user/avatar {:product/_stylist [:product/cost {:product/type [:db/ident]}]}])
+                 :where [?s :stylist/headline]])
+            inline-enums
+            pr-str))
   (route/not-found {:status 404}))
 
 (def app
