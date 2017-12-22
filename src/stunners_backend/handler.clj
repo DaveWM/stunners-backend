@@ -127,7 +127,7 @@
                  :where [?s :stylist/headline]])
             inline-enums
             pr-str))
-  (route/not-found {:status 404}))
+  (route/not-found (pr-str {:status 404})))
 
 (def app
   (wrap-defaults app-routes api-defaults))
