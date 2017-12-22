@@ -138,7 +138,7 @@
       (if valid?
         (handler (assoc request :token token))
         {:status 401
-         :headers {"Content-Type" "application/json"}
+         :headers {"Content-Type" "application/edn"}
          :body (pr-str {:message "Auth token not found or is invalid"})}))))
 
 (defroutes app-routes
