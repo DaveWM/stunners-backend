@@ -29,6 +29,9 @@
                    :db/cardinality :db.cardinality/one}
                   {:db/ident :user/phone-number
                    :db/valueType :db.type/string
+                   :db/cardinality :db.cardinality/one}
+                  {:db/ident :user/auth0-id
+                   :db/valueType :db.type/string
                    :db/cardinality :db.cardinality/one}])
 
 (def stylist-schema [{:db/ident :stylist/headline

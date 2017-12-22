@@ -15,6 +15,7 @@
 "]
           [:db/add "dave" :user/email "dwmartin41@gmail.com"]
           [:db/add "dave" :user/phone-number "07588361916"]
+          [:db/add "dave" :user/auth0-id "dave"]
           
           [:db/add "cristina" :user/name "Cristina Arias Rey"]
           [:db/add "cristina" :location/lat 51.578820]
@@ -30,6 +31,7 @@
           [:db/add "cristina" :stylist/images "https://st.depositphotos.com/2021695/2634/i/950/depositphotos_26346077-stock-photo-hair-stylist-curling-woman-hair.jpg"]
           [:db/add "cristina" :user/email "cris.ariasrey@gmail.com"]
           [:db/add "cristina" :user/phone-number "077712345678"]
+          [:db/add "cristina" :user/auth0-id "cristina"]
 
           [:db/add "a" :product/type :product-type/haircut]
           [:db/add "a" :product/cost 9.99]
