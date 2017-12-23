@@ -9,7 +9,9 @@
                  [com.datomic/clj-client "0.8.606"]
                  [org.eclipse.jetty/jetty-server "9.3.7.v20160115"]
                  [ring "1.6.0" :exclusions [org.eclipse.jetty/jetty-server]]
-                 [jerks-whistling-tunes "0.2.4"]]
+                 [jerks-whistling-tunes "0.2.4"]
+                 [fogus/ring-edn "0.3.0"]
+                 [org.clojure/spec.alpha "0.1.143"]]
   :plugins [[lein-ring "0.12.2"]]
   :ring {:handler stunners-backend.handler/app
          :nrepl {:start? true}}

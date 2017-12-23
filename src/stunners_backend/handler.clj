@@ -7,7 +7,10 @@
             [clojure.string :as str]
             [jerks-whistling-tunes.core :as jwt]
             [jerks-whistling-tunes.sign :as sign]
-            [stunners-backend.credentials :refer [credentials]]))
+            [stunners-backend.credentials :refer [credentials]]
+            [ring.middleware.edn :refer [wrap-edn-params]]
+            [clojure.spec.alpha :as s]
+            [stunners-backend.specs]))
 
 (def conn (<!! (d/connect
                 {:db-name "hello"
@@ -125,6 +128,9 @@
   ([query db & inputs]
    (<!! (d/q conn {:query query :args (cons db inputs)}))))
 
+(defn transact [txs]
+  (<!! (d/transact conn {:tx-data txs})))
+
 
 (defn authenticate [handler credentials]
   "Authenticates using auth token in Authorization header, or query param if header not set. Adds the auth token onto the request as :token, and the user's auth0 id as :user/auth0-id"
@@ -169,10 +175,24 @@
           :headers {"Content-Type" "application/edn"}
           :body (pr-str {:message (str "User with auth0 id " auth0-id " not found")})}))
 
+  (POST "/user" {params :params}
+        (let [user (select-keys params [:user/name :user/email :user/avatar :user/phone-number :location/address])]
+          (if (s/valid? :request/user user)
+            {:status 200
+             :headers {"Content-Type" "application/edn"}
+             :body (-> (transact [user])
+                       (select-keys [:tx-data])
+                       pr-str)}
+            {:status 400
+             :headers {"Content-Type" "application/edn"}
+             :body (pr-str {:message "Invalid request"
+                            :explanation (s/explain-data :request/user user)})})))
+
   (route/not-found {:status 404
                     :body (pr-str {:message "route not found"})}))
 
 (def app
   (-> app-routes
       (authenticate credentials)
+      wrap-edn-params
       (wrap-defaults api-defaults)))
