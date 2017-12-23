@@ -176,7 +176,7 @@
           :body (pr-str {:message (str "User with auth0 id " auth0-id " not found")})}))
 
   (POST "/user" {params :params}
-        (let [user (select-keys params [:user/name :user/email :user/avatar :user/phone-number :location/address])]
+        (let [user (select-keys params [:user/name :user/email :user/avatar :user/phone-number :user/auth0-id :location/address :user/auth0-id])]
           (if (s/valid? :request/user user)
             {:status 200
              :headers {"Content-Type" "application/edn"}

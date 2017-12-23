@@ -2,7 +2,8 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as str]))
 
-(s/def :request/user (s/keys :req [:user/name :user/email :user/avatar :user/phone-number :location/address]))
+(s/def :request/user (s/keys :req [:user/name :user/email :user/avatar :user/phone-number :user/auth0-id]
+                             :opt [:location/address]))
 
 (s/def :user/name (s/and string? (complement str/blank?)))
 
@@ -19,3 +20,5 @@
 (s/def :user/phone-number (s/and string? valid-phone-number?))
 
 (s/def :location/address (s/and string? (complement str/blank?)))
+
+(s/def :user/auth0-id (s/and string? (complement str/blank?)))
