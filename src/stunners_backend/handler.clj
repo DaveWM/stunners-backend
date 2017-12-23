@@ -101,7 +101,7 @@
                          {:db/ident :appointment-status/rejected}
                          {:db/ident :appointment/status
                           :db/valueType :db.type/ref
-                          :db/cardinality :db.cardinality/many}])
+                          :db/cardinality :db.cardinality/one}])
 
 (def schema (concat user-schema
                     location-schema
@@ -187,6 +187,21 @@
              :headers {"Content-Type" "application/edn"}
              :body (pr-str {:message "Invalid request"
                             :explanation (s/explain-data :request/user user)})})))
+
+  (GET "/appointments" {:keys [user/auth0-id]}
+       {:status 200
+        :headers {"Content-Type" "application/edn"}
+        :body (->> (q '[:find (pull ?a [* {:appointment/status [:db/ident]} {:appointment/product-types [:db/ident]}])
+                        :where [?a :appointment/time]
+                        [?user :user/auth0-id ?auth0-id]
+                        (or [?a :appointment/stylist ?user]
+                            [?a :appointment/stylee ?user])
+                        :in $ ?auth0-id]
+                      (d/db conn)
+                      auth0-id)
+                   inline-enums
+                   (map first)
+                   pr-str)})
 
   (route/not-found {:status 404
                     :body (pr-str {:message "route not found"})}))
