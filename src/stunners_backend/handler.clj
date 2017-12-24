@@ -202,16 +202,19 @@
   (GET "/appointments" {:keys [user/auth0-id params]}
        {:status 200
         :headers {"Content-Type" "application/edn"}
-        :body (->> (q '[:find (pull ?a [* {:appointment/status [:db/ident]} {:appointment/product-types [:db/ident]}])
+        :body (->> (q '[:find
+                        (pull ?a [* {:appointment/status [:db/ident]}])
+                        (pull ?pt [:db/id :db/ident])
                         :where [?a :appointment/time]
                         [?user :user/auth0-id ?auth0-id]
                         (or [?a :appointment/stylist ?user]
                             [?a :appointment/stylee ?user])
+                        [?a :appointment/product-types ?pt]
                         :in $ ?auth0-id]
                       (d/db conn)
                       auth0-id)
                    inline-enums
-                   (map first)
+                   split-main-related
                    pr-str)})
 
   (POST "/appointments" {:keys [user/auth0-id params]}
