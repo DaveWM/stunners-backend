@@ -31,7 +31,7 @@
 
 (s/def :appointment/time inst?)
 
-(s/def :location/lat (s/and number? #(<= -90 % 90)))
-(s/def :location/lng (s/and number? #(<= -180 % 180)))
+(s/def :location/lat (s/and double? #(<= -90 % 90)))
+(s/def :location/lng (s/and double? #(<= -180 % 180)))
 
 (s/def :appointment/stylist pos-int?)

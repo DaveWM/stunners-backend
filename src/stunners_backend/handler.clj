@@ -10,7 +10,8 @@
             [stunners-backend.credentials :refer [credentials]]
             [ring.middleware.edn :refer [wrap-edn-params]]
             [clojure.spec.alpha :as s]
-            [stunners-backend.specs]))
+            [stunners-backend.specs]
+            [clj-http.client :as http]))
 
 (def conn (<!! (d/connect
                 {:db-name "hello"
@@ -130,6 +131,12 @@
     {:main main
      :related (flatten related)}))
 
+(defn spec-failed-response [spec-key entity]
+  {:status 400
+   :headers {"Content-Type" "application/edn"}
+   :body (pr-str {:message "Invalid request"
+                  :explanation (s/explain-data spec-key entity)})})
+
 (defn q
   ([query] (q query (d/db conn)))
   ([query db & inputs]
@@ -194,10 +201,7 @@
              :body (-> (transact [user])
                        (select-keys [:tx-data])
                        pr-str)}
-            {:status 400
-             :headers {"Content-Type" "application/edn"}
-             :body (pr-str {:message "Invalid request"
-                            :explanation (s/explain-data :request/user user)})})))
+            (spec-failed-response :request/user user))))
 
   (GET "/appointments" {:keys [user/auth0-id params]}
        {:status 200
@@ -218,7 +222,37 @@
                    pr-str)})
 
   (POST "/appointments" {:keys [user/auth0-id params]}
-        )
+        (let [appointment (select-keys params [:location/lat :location/lng :appointment/stylist :appointment/time :appointment/product-types])]
+          (if (s/valid? :request/appointment appointment)
+            (let [{address-components :address_components address :formatted_address}
+                  (-> (str "https://maps.googleapis.com/maps/api/geocode/json?latlng=" 51.4297356 "," -0.163282)
+                      (http/get {:as :json})
+                      :body
+                      :results
+                      first)
+                  with-type (fn [address-component type]
+                              (some #(= type %) (:types address-component)))
+                  postcode (->> address-components
+                                (filter #(with-type % "postal_code"))
+                                first
+                                :long_name)
+                  stylee (-> (q '[:find ?e
+                                  :where [?e :user/auth0-id ?auth0-id]
+                                  :in $ ?auth0-id]
+                                (d/db conn)
+                                auth0-id)
+                             ffirst)]
+              {:status 200
+               :headers {"Content-Type" "application/edn"}
+               :body (-> (merge appointment {:location/address address
+                                             :location/postcode postcode
+                                             :appointment/status :appointment-status/pending
+                                             :appointment/stylee stylee})
+                         vector
+                         transact
+                         (select-keys [:tx-data])
+                         pr-str)})
+            (spec-failed-response :request/appointment appointment))))
 
   (route/not-found {:status 404
                     :body (pr-str {:message "route not found"})}))
