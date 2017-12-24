@@ -123,6 +123,13 @@
                             x))
                         query-result))
 
+(defn split-main-related [query-result]
+  (let [[main & related] (->> query-result
+                              (apply map vector)
+                              (map distinct))]
+    {:main main
+     :related (flatten related)}))
+
 (defn q
   ([query] (q query (d/db conn)))
   ([query db & inputs]
@@ -156,11 +163,15 @@
   (GET "/health-check" [] {:status 200
                            :headers {"Content-Type" "application/edn"}
                            :body (pr-str {:status :ok})})
-  (GET "/stylists" []       
-       (->> (q '[:find (pull ?s [:user/name :location/outcode :stylist/headline :stylist/images :stylist/description :db/id :user/avatar {:product/_stylist [:product/cost {:product/type [:db/ident]}]}])
-                 :where [?s :stylist/headline]])
+  (GET "/stylists" []
+       (->> (q '[:find (pull ?s [:db/id :user/name :location/outcode :stylist/headline :stylist/images :stylist/description :user/avatar])
+                 (pull ?p [* {:product/type [:db/ident]}])
+                 (pull ?pt [:db/id :db/ident])
+                 :where [?s :stylist/headline]
+                 [?p :product/stylist ?s]
+                 [?p :product/type ?pt]])
             inline-enums
-            (mapcat identity)
+            split-main-related
             pr-str))
 
   (GET "/user" {:keys [user/auth0-id]}
@@ -175,7 +186,7 @@
           :headers {"Content-Type" "application/edn"}
           :body (pr-str {:message (str "User with auth0 id " auth0-id " not found")})}))
 
-  (POST "/user" {params :params}
+  (POST "/user" {:keys [params]}
         (let [user (select-keys params [:user/name :user/email :user/avatar :user/phone-number :user/auth0-id :location/address :user/auth0-id])]
           (if (s/valid? :request/user user)
             {:status 200
@@ -188,7 +199,7 @@
              :body (pr-str {:message "Invalid request"
                             :explanation (s/explain-data :request/user user)})})))
 
-  (GET "/appointments" {:keys [user/auth0-id]}
+  (GET "/appointments" {:keys [user/auth0-id params]}
        {:status 200
         :headers {"Content-Type" "application/edn"}
         :body (->> (q '[:find (pull ?a [* {:appointment/status [:db/ident]} {:appointment/product-types [:db/ident]}])
@@ -202,6 +213,9 @@
                    inline-enums
                    (map first)
                    pr-str)})
+
+  (POST "/appointments" {:keys [user/auth0-id params]}
+        )
 
   (route/not-found {:status 404
                     :body (pr-str {:message "route not found"})}))
