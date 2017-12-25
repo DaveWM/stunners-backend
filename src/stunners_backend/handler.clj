@@ -5,166 +5,18 @@
             [datomic.client :as d]
             [clojure.core.async :refer [<!!]]
             [clojure.string :as str]
-            [jerks-whistling-tunes.core :as jwt]
-            [jerks-whistling-tunes.sign :as sign]
             [stunners-backend.credentials :refer [credentials]]
             [ring.middleware.edn :refer [wrap-edn-params]]
             [clojure.spec.alpha :as s]
             [stunners-backend.specs]
-            [clj-http.client :as http]))
-
-(def conn (<!! (d/connect
-                {:db-name "hello"
-                 :account-id d/PRO_ACCOUNT
-                 :secret "mysecret"
-                 :region "none"
-                 :endpoint "localhost:8998"
-                 :service "peer-server"
-                 :access-key "myaccesskey"})))
-
-(def user-schema [{:db/ident :user/name
-                   :db/valueType :db.type/string
-                   :db/cardinality :db.cardinality/one}
-                  {:db/ident :user/avatar
-                   :db/valueType :db.type/string
-                   :db/cardinality :db.cardinality/one}
-                  {:db/ident :user/email
-                   :db/valueType :db.type/string
-                   :db/cardinality :db.cardinality/one}
-                  {:db/ident :user/phone-number
-                   :db/valueType :db.type/string
-                   :db/cardinality :db.cardinality/one}
-                  {:db/ident :user/auth0-id
-                   :db/valueType :db.type/string
-                   :db/cardinality :db.cardinality/one}])
-
-(def stylist-schema [{:db/ident :stylist/headline
-                      :db/valueType :db.type/string
-                      :db/cardinality :db.cardinality/one}
-                     {:db/ident :stylist/images
-                      :db/valueType :db.type/string
-                      :db/cardinality :db.cardinality/many}
-                     {:db/ident :stylist/description
-                      :db/valueType :db.type/string
-                      :db/cardinality :db.cardinality/one}])
-
-(def location-schema [{:db/ident :location/address
-                       :db/valueType :db.type/string
-                       :db/cardinality :db.cardinality/one}
-                      {:db/ident :location/outcode
-                       :db/valueType :db.type/string
-                       :db/cardinality :db.cardinality/one}
-                      {:db/ident :location/postcode
-                       :db/valueType :db.type/string
-                       :db/cardinality :db.cardinality/one}
-                      {:db/ident :location/lat
-                       :db/valueType :db.type/double
-                       :db/cardinality :db.cardinality/one}
-                      {:db/ident :location/lng
-                       :db/valueType :db.type/double
-                       :db/cardinality :db.cardinality/one}])
-
-(def filter-group-schema [{:db/ident :filter-group/label
-                           :db/valueType :db.type/string
-                           :db/cardinality :db.cardinality/one}
-                          {:db/ident :filter-group/product-types
-                           :db/valueType :db.type/ref
-                           :db/cardinality :db.cardinality/many}])
-
-(def product-type-schema (->> [:haircut :waxing :nails]
-                              (map #(keyword "product-type" (name %)))
-                              (map #(hash-map :db/ident %))))
-
-(def product-schema [{:db/ident :product/type
-                      :db/valueType :db.type/ref
-                      :db/cardinality :db.cardinality/one}
-                     {:db/ident :product/cost
-                      :db/valueType :db.type/double
-                      :db/cardinality :db.cardinality/one}
-                     {:db/ident :product/stylist
-                      :db/valueType :db.type/ref
-                      :db/cardinality :db.cardinality/one}])
-
-(def appointment-schema [{:db/ident :appointment/time
-                          :db/valueType :db.type/instant
-                          :db/cardinality :db.cardinality/one}
-                         {:db/ident :appointment/stylist
-                          :db/valueType :db.type/ref
-                          :db/cardinality :db.cardinality/one}
-                         {:db/ident :appointment/stylee
-                          :db/valueType :db.type/ref
-                          :db/cardinality :db.cardinality/one}
-                         {:db/ident :appointment/product-types
-                          :db/valueType :db.type/ref
-                          :db/cardinality :db.cardinality/many}
-                         {:db/ident :appointment-status/pending}
-                         {:db/ident :appointment-status/confirmed}
-                         {:db/ident :appointment-status/rejected}
-                         {:db/ident :appointment/status
-                          :db/valueType :db.type/ref
-                          :db/cardinality :db.cardinality/one}])
-
-(def schema (concat user-schema
-                    location-schema
-                    product-type-schema
-                    product-schema
-                    appointment-schema
-                    stylist-schema
-                    filter-group-schema))
+            [clj-http.client :as http]
+            [stunners-backend.datomic :refer [conn q transact]]
+            [stunners-backend.schema :refer [schema]]
+            [stunners-backend.utils :as utils]
+            [stunners-backend.middleware :as middleware]))
 
 
 (<!! (d/transact conn {:tx-data schema}))
-
-(defn inline-enums [query-result]
-  (clojure.walk/prewalk (fn [x]
-                          (if (and (map? x) (= (count x) 1))
-                            (if-let [ident (:db/ident x)]
-                              ident
-                              x)
-                            x))
-                        query-result))
-
-(defn split-main-related [query-result]
-  (let [[main & related] (->> query-result
-                              (apply map vector)
-                              (map distinct))]
-    {:main main
-     :related (flatten related)}))
-
-(defn spec-failed-response [spec-key entity]
-  {:status 400
-   :headers {"Content-Type" "application/edn"}
-   :body (pr-str {:message "Invalid request"
-                  :explanation (s/explain-data spec-key entity)})})
-
-(defn q
-  ([query] (q query (d/db conn)))
-  ([query db & inputs]
-   (<!! (d/q conn {:query query :args (cons db inputs)}))))
-
-(defn transact [txs]
-  (<!! (d/transact conn {:tx-data txs})))
-
-
-(defn authenticate [handler credentials]
-  "Authenticates using auth token in Authorization header, or query param if header not set. Adds the auth token onto the request as :token, and the user's auth0 id as :user/auth0-id"
-  (fn [request]
-    (let [{:keys [headers query-params]} request
-          token (-> (get headers "authorization")
-                    (or "")
-                    (str/replace #"^\s*Bearer\s+" ""))
-          decoded-token (jwt/validate token
-                                      (jwt/signature (sign/hs256 (:client-secret credentials)))
-                                      (jwt/aud (:client-id credentials))
-                                      (jwt/iss (:domain credentials))
-                                      jwt/exp)]
-      (if-let [{:keys [sub]} decoded-token]
-        (handler (-> request
-                     (assoc :token token)
-                     (assoc :user/auth0-id sub)))
-        {:status 401
-         :headers {"Content-Type" "application/edn"}
-         :body (pr-str {:message "Auth token not found or is invalid"})}))))
 
 (defroutes app-routes
   (GET "/health-check" [] {:status 200
@@ -177,8 +29,8 @@
                  :where [?s :stylist/headline]
                  [?p :product/stylist ?s]
                  [?p :product/type ?pt]])
-            inline-enums
-            split-main-related
+            utils/inline-enums
+            utils/split-main-related
             pr-str))
 
   (GET "/user" {:keys [user/auth0-id]}
@@ -201,7 +53,7 @@
              :body (-> (transact [user])
                        (select-keys [:tx-data])
                        pr-str)}
-            (spec-failed-response :request/user user))))
+            (utils/spec-failed-response :request/user user))))
 
   (GET "/appointments" {:keys [user/auth0-id params]}
        {:status 200
@@ -217,8 +69,8 @@
                         :in $ ?auth0-id]
                       (d/db conn)
                       auth0-id)
-                   inline-enums
-                   split-main-related
+                   utils/inline-enums
+                   utils/split-main-related
                    pr-str)})
 
   (POST "/appointments" {:keys [user/auth0-id params]}
@@ -252,7 +104,7 @@
                          transact
                          (select-keys [:tx-data])
                          pr-str)})
-            (spec-failed-response :request/appointment appointment))))
+            (utils/spec-failed-response :request/appointment appointment))))
 
   (PUT "/appointments/:id" {:keys [user/auth0-id] {param-id :id :as params} :params}
        (let [appointment-id (Long/parseLong param-id)
@@ -269,7 +121,7 @@
                               :eid appointment-id}))]
          (cond
            (not (s/valid? :request/appointment-update appointment-update))
-           (spec-failed-response :request/appointment-update appointment-update)
+           (utils/spec-failed-response :request/appointment-update appointment-update)
 
            (nil? stylist-id) {:status 404
                               :headers {"Content-Type" "application/edn"}
@@ -297,6 +149,6 @@
 
 (def app
   (-> app-routes
-      (authenticate credentials)
+      (middleware/authenticate credentials)
       wrap-edn-params
       (wrap-defaults api-defaults)))
