@@ -2,11 +2,13 @@
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :min-lein-version "2.0.0"
+  :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
+                                   :creds :gpg}}
   :dependencies [[org.clojure/clojure "1.9.0-alpha19"]
                  [compojure "1.6.0"]
                  [ring/ring-defaults "0.2.1"]
                  [org.clojure/core.async "0.3.465"]
-                 [com.datomic/clj-client "0.8.606"]
+                 [com.datomic/datomic-pro "0.9.5656"]
                  [org.eclipse.jetty/jetty-server "9.3.7.v20160115"]
                  [ring "1.6.0" :exclusions [org.eclipse.jetty/jetty-server]]
                  [jerks-whistling-tunes "0.2.4"]

@@ -2,7 +2,7 @@
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
-            [datomic.client :as d]
+            [datomic.api :as d]
             [clojure.core.async :refer [<!!]]
             [clojure.string :as str]
             [stunners-backend.credentials :refer [credentials]]
@@ -10,37 +10,37 @@
             [clojure.spec.alpha :as s]
             [stunners-backend.specs]
             [clj-http.client :as http]
-            [stunners-backend.datomic :refer [conn q transact]]
+            [stunners-backend.datomic :refer [conn]]
             [stunners-backend.schema :refer [schema]]
             [stunners-backend.utils :as utils]
             [stunners-backend.middleware :as middleware]
             [spec-tools.core :as st]))
 
 
-(<!! (d/transact conn {:tx-data schema}))
+@(d/transact conn schema)
 
 (defroutes app-routes
   (GET "/health-check" [] {:status 200
                            :body {:status :ok}})
   (GET "/stylists" []
-       (let [response (->> (q '[:find (pull ?s [:db/id :user/name :location/outcode :stylist/headline :stylist/images :stylist/description :user/avatar])
-                                (pull ?p [* {:product/type [:db/ident]}])
-                                (pull ?pt [:db/id :db/ident])
-                                :where [?s :stylist/headline]
-                                [?p :product/stylist ?s]
-                                [?p :product/type ?pt]])
+       (let [response (->> (d/q '[:find (pull ?s [:db/id :user/name :location/outcode :stylist/headline :stylist/images :stylist/description :user/avatar])
+                                  (pull ?p [* {:product/type [:db/ident]}])
+                                  (pull ?pt [:db/id :db/ident])
+                                  :where [?s :stylist/headline]
+                                  [?p :product/stylist ?s]
+                                  [?p :product/type ?pt]]
+                                (d/db conn))
                            utils/inline-enums
                            utils/split-main-related)]
          {:status 200
           :body response}))
 
   (GET "/user" {:keys [user/auth0-id]}
-       (if-let [user (->> (q '[:find (pull ?e [:db/id :user/name :user/email :user/phone-number :user/avatar :user/auth0-id :location/address])
-                               :where [?e :user/auth0-id ?id]
-                               :in $ ?id]
-                             (d/db conn)
-                             auth0-id)
-                          ffirst)]
+       (if-let [user (d/q '[:find (pull ?e [:db/id :user/name :user/email :user/phone-number :user/avatar :user/auth0-id :location/address]) .
+                            :where [?e :user/auth0-id ?id]
+                            :in $ ?id]
+                          (d/db conn)
+                          auth0-id)]
          {:status 200
           :body user}
          {:status 404
@@ -50,13 +50,13 @@
         (let [user (st/select-spec :request/user params)]
           (if (s/valid? :request/user user)
             {:status 200
-             :body (-> (transact [user])
+             :body (-> @(d/transact conn [user])
                        (select-keys [:tx-data]))}
             (utils/spec-failed-response :request/user user))))
 
   (GET "/appointments" {:keys [user/auth0-id params]}
        {:status 200
-        :body (->> (q '[:find
+        :body (->> (d/q '[:find
                         (pull ?a [* {:appointment/status [:db/ident]}])
                         (pull ?pt [:db/id :db/ident])
                         :where [?a :appointment/time]
@@ -86,12 +86,11 @@
                                 (filter #(with-type % "postal_code"))
                                 first
                                 :long_name)
-                  stylee (-> (q '[:find ?e
-                                  :where [?e :user/auth0-id ?auth0-id]
-                                  :in $ ?auth0-id]
-                                (d/db conn)
-                                auth0-id)
-                             ffirst)]
+                  stylee (d/q '[:find ?e .
+                                :where [?e :user/auth0-id ?auth0-id]
+                                :in $ ?auth0-id]
+                              (d/db conn)
+                              auth0-id)]
               {:status 200
                :body (-> (merge appointment {:location/address address
                                              :location/postcode postcode
@@ -106,15 +105,13 @@
        (let [appointment-id (Long/parseLong param-id)
              appointment-update (st/select-spec :request/appointment-update params)
              db (d/db conn)
-             current-user-id (-> (q '[:find ?e
-                                      :where [?e :user/auth0-id ?auth0-id]
-                                      :in $ ?auth0-id]
-                                    db auth0-id)
-                                 ffirst)
+             current-user-id (d/q '[:find ?e .
+                                    :where [?e :user/auth0-id ?auth0-id]
+                                    :in $ ?auth0-id]
+                                  db auth0-id)
              {{stylist-id :db/id} :appointment/stylist
               {status :db/ident} :appointment/status}
-             (<!! (d/pull db {:selector '[:appointment/stylist {:appointment/status [:db/ident]}]
-                              :eid appointment-id}))]
+             (d/pull db '[:appointment/stylist {:appointment/status [:db/ident]}] appointment-id)]
          (cond
            (not (s/valid? :request/appointment-update appointment-update))
            (utils/spec-failed-response :request/appointment-update appointment-update)
@@ -129,11 +126,11 @@
                                                       :body {:message "The appointment must be in the 'pending' state to update it"}}
 
            :else {:status 200
-                  :body (-> (map (fn [[k v]]
-                                   [:db/add appointment-id k v])
-                                 appointment-update)
-                            transact
-                            (select-keys [:tx-data]))})))
+                  :body (let [transactions (map (fn [[k v]]
+                                                  [:db/add appointment-id k v])
+                                                appointment-update)]
+                          (-> @(d/transact conn transactions)
+                              (select-keys [:tx-data])))})))
 
   (route/not-found {:status 404
                     :body {:message "route not found"}}))
