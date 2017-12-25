@@ -254,6 +254,44 @@
                          pr-str)})
             (spec-failed-response :request/appointment appointment))))
 
+  (PUT "/appointments/:id" {:keys [user/auth0-id] {param-id :id :as params} :params}
+       (let [appointment-id (Long/parseLong param-id)
+             appointment-update (select-keys params [:appointment/status])
+             db (d/db conn)
+             current-user-id (-> (q '[:find ?e
+                                      :where [?e :user/auth0-id ?auth0-id]
+                                      :in $ ?auth0-id]
+                                    db auth0-id)
+                                 ffirst)
+             {{stylist-id :db/id} :appointment/stylist
+              {status :db/ident} :appointment/status}
+             (<!! (d/pull db {:selector '[:appointment/stylist {:appointment/status [:db/ident]}]
+                              :eid appointment-id}))]
+         (cond
+           (not (s/valid? :request/appointment-update appointment-update))
+           (spec-failed-response :request/appointment-update appointment-update)
+
+           (nil? stylist-id) {:status 404
+                              :headers {"Content-Type" "application/edn"}
+                              :body (pr-str {:message "Specified appointment does not exist"})}
+
+           (not= stylist-id current-user-id) {:status 400
+                                              :headers {"Content-Type" "application/edn"}
+                                              :body (pr-str {:message "You cannot update an appointment where you are not the stylist"})}
+
+           (not= status :appointment-status/pending) {:status 400
+                                                      :headers {"Content-Type" "application/edn"}
+                                                      :body (pr-str {:message "The appointment must be in the 'pending' state to update it"})}
+
+           :else {:status 200
+                  :headers {"Content-Type" "application/edn"}
+                  :body (-> (map (fn [[k v]]
+                                   [:db/add appointment-id k v])
+                                 appointment-update)
+                            transact
+                            (select-keys [:tx-data])
+                            pr-str)})))
+
   (route/not-found {:status 404
                     :body (pr-str {:message "route not found"})}))
 

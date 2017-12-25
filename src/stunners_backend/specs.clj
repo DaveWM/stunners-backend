@@ -7,6 +7,8 @@
 
 (s/def :request/appointment (s/keys :req [:location/lat :location/lng :appointment/stylist :appointment/time :appointment/product-types]))
 
+(s/def :request/appointment-update (s/keys :req [:appointment/status]))
+
 (s/def :user/name (s/and string? (complement str/blank?)))
 
 (def email-regex #"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$")
@@ -35,3 +37,5 @@
 (s/def :location/lng (s/and double? #(<= -180 % 180)))
 
 (s/def :appointment/stylist pos-int?)
+
+(s/def :appointment/status #{:appointment-status/pending :appointment-status/confirmed :appointment-status/rejected})
