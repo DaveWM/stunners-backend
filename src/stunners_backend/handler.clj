@@ -13,7 +13,8 @@
             [stunners-backend.datomic :refer [conn q transact]]
             [stunners-backend.schema :refer [schema]]
             [stunners-backend.utils :as utils]
-            [stunners-backend.middleware :as middleware]))
+            [stunners-backend.middleware :as middleware]
+            [spec-tools.core :as st]))
 
 
 (<!! (d/transact conn {:tx-data schema}))
@@ -46,7 +47,7 @@
           :body {:message (str "User with auth0 id " auth0-id " not found")}}))
 
   (POST "/user" {:keys [params]}
-        (let [user (select-keys params [:user/name :user/email :user/avatar :user/phone-number :user/auth0-id :location/address :user/auth0-id])]
+        (let [user (st/select-spec :request/user params)]
           (if (s/valid? :request/user user)
             {:status 200
              :body (-> (transact [user])
@@ -70,7 +71,7 @@
                    utils/split-main-related)})
 
   (POST "/appointments" {:keys [user/auth0-id params]}
-        (let [appointment (select-keys params [:location/lat :location/lng :appointment/stylist :appointment/time :appointment/product-types])]
+        (let [appointment (st/select-spec :request/appointment params)]
           (if (s/valid? :request/appointment appointment)
             (let [{address-components :address_components address :formatted_address}
                   (-> (str "https://maps.googleapis.com/maps/api/geocode/json?latlng=" 51.4297356 "," -0.163282)
@@ -102,7 +103,7 @@
 
   (PUT "/appointments/:id" {:keys [user/auth0-id] {param-id :id :as params} :params}
        (let [appointment-id (Long/parseLong param-id)
-             appointment-update (select-keys params [:appointment/status])
+             appointment-update (st/select-spec :request/appointment-update params)
              db (d/db conn)
              current-user-id (-> (q '[:find ?e
                                       :where [?e :user/auth0-id ?auth0-id]

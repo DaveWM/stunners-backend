@@ -1,13 +1,14 @@
 (ns stunners-backend.specs
   (:require [clojure.spec.alpha :as s]
+            [spec-tools.core :as st]
             [clojure.string :as str]))
 
-(s/def :request/user (s/keys :req [:user/name :user/email :user/avatar :user/phone-number :user/auth0-id]
-                             :opt [:location/address]))
+(s/def :request/user (st/spec (s/keys :req [:user/name :user/email :user/avatar :user/phone-number :user/auth0-id]
+                                      :opt [:location/address])))
 
-(s/def :request/appointment (s/keys :req [:location/lat :location/lng :appointment/stylist :appointment/time :appointment/product-types]))
+(s/def :request/appointment (st/spec (s/keys :req [:location/lat :location/lng :appointment/stylist :appointment/time :appointment/product-types])))
 
-(s/def :request/appointment-update (s/keys :req [:appointment/status]))
+(s/def :request/appointment-update (st/spec (s/keys :req [:appointment/status])))
 
 (s/def :user/name (s/and string? (complement str/blank?)))
 
