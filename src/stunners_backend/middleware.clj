@@ -20,5 +20,10 @@
                      (assoc :token token)
                      (assoc :user/auth0-id sub)))
         {:status 401
-         :headers {"Content-Type" "application/edn"}
-         :body (pr-str {:message "Auth token not found or is invalid"})}))))
+         :body {:message "Auth token not found or is invalid"}}))))
+
+(defn edn [handler]
+  (fn [request]
+    (-> (handler request)
+        (update :body pr-str)
+        (update :headers (partial merge {"Content-Type" "application/edn"})))))

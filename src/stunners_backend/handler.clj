@@ -20,18 +20,18 @@
 
 (defroutes app-routes
   (GET "/health-check" [] {:status 200
-                           :headers {"Content-Type" "application/edn"}
-                           :body (pr-str {:status :ok})})
+                           :body {:status :ok}})
   (GET "/stylists" []
-       (->> (q '[:find (pull ?s [:db/id :user/name :location/outcode :stylist/headline :stylist/images :stylist/description :user/avatar])
-                 (pull ?p [* {:product/type [:db/ident]}])
-                 (pull ?pt [:db/id :db/ident])
-                 :where [?s :stylist/headline]
-                 [?p :product/stylist ?s]
-                 [?p :product/type ?pt]])
-            utils/inline-enums
-            utils/split-main-related
-            pr-str))
+       (let [response (->> (q '[:find (pull ?s [:db/id :user/name :location/outcode :stylist/headline :stylist/images :stylist/description :user/avatar])
+                                (pull ?p [* {:product/type [:db/ident]}])
+                                (pull ?pt [:db/id :db/ident])
+                                :where [?s :stylist/headline]
+                                [?p :product/stylist ?s]
+                                [?p :product/type ?pt]])
+                           utils/inline-enums
+                           utils/split-main-related)]
+         {:status 200
+          :body response}))
 
   (GET "/user" {:keys [user/auth0-id]}
        (if-let [user (->> (q '[:find (pull ?e [:db/id :user/name :user/email :user/phone-number :user/avatar :user/auth0-id :location/address])
@@ -40,24 +40,21 @@
                              (d/db conn)
                              auth0-id)
                           ffirst)]
-         (pr-str user)
+         {:status 200
+          :body user}
          {:status 404
-          :headers {"Content-Type" "application/edn"}
-          :body (pr-str {:message (str "User with auth0 id " auth0-id " not found")})}))
+          :body {:message (str "User with auth0 id " auth0-id " not found")}}))
 
   (POST "/user" {:keys [params]}
         (let [user (select-keys params [:user/name :user/email :user/avatar :user/phone-number :user/auth0-id :location/address :user/auth0-id])]
           (if (s/valid? :request/user user)
             {:status 200
-             :headers {"Content-Type" "application/edn"}
              :body (-> (transact [user])
-                       (select-keys [:tx-data])
-                       pr-str)}
+                       (select-keys [:tx-data]))}
             (utils/spec-failed-response :request/user user))))
 
   (GET "/appointments" {:keys [user/auth0-id params]}
        {:status 200
-        :headers {"Content-Type" "application/edn"}
         :body (->> (q '[:find
                         (pull ?a [* {:appointment/status [:db/ident]}])
                         (pull ?pt [:db/id :db/ident])
@@ -70,8 +67,7 @@
                       (d/db conn)
                       auth0-id)
                    utils/inline-enums
-                   utils/split-main-related
-                   pr-str)})
+                   utils/split-main-related)})
 
   (POST "/appointments" {:keys [user/auth0-id params]}
         (let [appointment (select-keys params [:location/lat :location/lng :appointment/stylist :appointment/time :appointment/product-types])]
@@ -95,15 +91,13 @@
                                 auth0-id)
                              ffirst)]
               {:status 200
-               :headers {"Content-Type" "application/edn"}
                :body (-> (merge appointment {:location/address address
                                              :location/postcode postcode
                                              :appointment/status :appointment-status/pending
                                              :appointment/stylee stylee})
                          vector
                          transact
-                         (select-keys [:tx-data])
-                         pr-str)})
+                         (select-keys [:tx-data]))})
             (utils/spec-failed-response :request/appointment appointment))))
 
   (PUT "/appointments/:id" {:keys [user/auth0-id] {param-id :id :as params} :params}
@@ -124,31 +118,27 @@
            (utils/spec-failed-response :request/appointment-update appointment-update)
 
            (nil? stylist-id) {:status 404
-                              :headers {"Content-Type" "application/edn"}
-                              :body (pr-str {:message "Specified appointment does not exist"})}
+                              :body {:message "Specified appointment does not exist"}}
 
            (not= stylist-id current-user-id) {:status 400
-                                              :headers {"Content-Type" "application/edn"}
-                                              :body (pr-str {:message "You cannot update an appointment where you are not the stylist"})}
+                                              :body {:message "You cannot update an appointment where you are not the stylist"}}
 
-           (not= status :appointment-status/pending) {:status 400
-                                                      :headers {"Content-Type" "application/edn"}
-                                                      :body (pr-str {:message "The appointment must be in the 'pending' state to update it"})}
+           (not= status :appointment-status/pending) {:status 200
+                                                      :body {:message "The appointment must be in the 'pending' state to update it"}}
 
            :else {:status 200
-                  :headers {"Content-Type" "application/edn"}
                   :body (-> (map (fn [[k v]]
                                    [:db/add appointment-id k v])
                                  appointment-update)
                             transact
-                            (select-keys [:tx-data])
-                            pr-str)})))
+                            (select-keys [:tx-data]))})))
 
   (route/not-found {:status 404
-                    :body (pr-str {:message "route not found"})}))
+                    :body {:message "route not found"}}))
 
 (def app
   (-> app-routes
+      middleware/edn
       (middleware/authenticate credentials)
       wrap-edn-params
       (wrap-defaults api-defaults)))
