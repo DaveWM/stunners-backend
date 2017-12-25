@@ -71,10 +71,11 @@
                    utils/split-main-related)})
 
   (POST "/appointments" {:keys [user/auth0-id params]}
-        (let [appointment (st/select-spec :request/appointment params)]
+        (let [{:keys [location/lat location/lng] :as appointment}
+              (st/select-spec :request/appointment params)]
           (if (s/valid? :request/appointment appointment)
             (let [{address-components :address_components address :formatted_address}
-                  (-> (str "https://maps.googleapis.com/maps/api/geocode/json?latlng=" 51.4297356 "," -0.163282)
+                  (-> (str "https://maps.googleapis.com/maps/api/geocode/json?latlng=" lat "," lng)
                       (http/get {:as :json})
                       :body
                       :results
