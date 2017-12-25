@@ -1,7 +1,8 @@
 (ns stunners-backend.specs
   (:require [clojure.spec.alpha :as s]
             [spec-tools.core :as st]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [stunners-backend.enums :as enums]))
 
 (s/def :request/user (st/spec (s/keys :req [:user/name :user/email :user/avatar :user/phone-number :user/auth0-id]
                                       :opt [:location/address])))
@@ -28,9 +29,7 @@
 
 (s/def :user/auth0-id (s/and string? (complement str/blank?)))
 
-(s/def :appointment/status #{:appointment-status/pending :appointment-status/confirmed :appointment-status/rejected})
-
-(s/def :appointment/product-types (s/coll-of #{:product-type/haircut :product-type/waxing :product-type/nails} :min-count 1 :distinct true))
+(s/def :appointment/product-types (s/coll-of enums/product-type :min-count 1 :distinct true))
 
 (s/def :appointment/time inst?)
 
@@ -39,4 +38,4 @@
 
 (s/def :appointment/stylist pos-int?)
 
-(s/def :appointment/status #{:appointment-status/pending :appointment-status/confirmed :appointment-status/rejected})
+(s/def :appointment/status enums/appointment-status)

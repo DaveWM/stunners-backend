@@ -1,4 +1,5 @@
-(ns stunners-backend.schema)
+(ns stunners-backend.schema
+  (:require [stunners-backend.enums :as enums]))
 
 (def user-schema [{:db/ident :user/name
                    :db/valueType :db.type/string
@@ -49,9 +50,7 @@
                            :db/valueType :db.type/ref
                            :db/cardinality :db.cardinality/many}])
 
-(def product-type-schema (->> [:haircut :waxing :nails]
-                              (map #(keyword "product-type" (name %)))
-                              (map #(hash-map :db/ident %))))
+(def product-type-schema (map #(hash-map :db/ident %) enums/product-type))
 
 (def product-schema [{:db/ident :product/type
                       :db/valueType :db.type/ref
@@ -63,24 +62,22 @@
                       :db/valueType :db.type/ref
                       :db/cardinality :db.cardinality/one}])
 
-(def appointment-schema [{:db/ident :appointment/time
-                          :db/valueType :db.type/instant
-                          :db/cardinality :db.cardinality/one}
-                         {:db/ident :appointment/stylist
-                          :db/valueType :db.type/ref
-                          :db/cardinality :db.cardinality/one}
-                         {:db/ident :appointment/stylee
-                          :db/valueType :db.type/ref
-                          :db/cardinality :db.cardinality/one}
-                         {:db/ident :appointment/product-types
-                          :db/valueType :db.type/ref
-                          :db/cardinality :db.cardinality/many}
-                         {:db/ident :appointment-status/pending}
-                         {:db/ident :appointment-status/confirmed}
-                         {:db/ident :appointment-status/rejected}
-                         {:db/ident :appointment/status
-                          :db/valueType :db.type/ref
-                          :db/cardinality :db.cardinality/one}])
+(def appointment-schema (concat [{:db/ident :appointment/time
+                                  :db/valueType :db.type/instant
+                                  :db/cardinality :db.cardinality/one}
+                                 {:db/ident :appointment/stylist
+                                  :db/valueType :db.type/ref
+                                  :db/cardinality :db.cardinality/one}
+                                 {:db/ident :appointment/stylee
+                                  :db/valueType :db.type/ref
+                                  :db/cardinality :db.cardinality/one}
+                                 {:db/ident :appointment/product-types
+                                  :db/valueType :db.type/ref
+                                  :db/cardinality :db.cardinality/many}
+                                 {:db/ident :appointment/status
+                                  :db/valueType :db.type/ref
+                                  :db/cardinality :db.cardinality/one}]
+                                (map #(hash-map :db/ident %) enums/appointment-status)))
 
 (def schema (concat user-schema
                     location-schema
