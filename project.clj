@@ -3,7 +3,8 @@
   :url "http://example.com/FIXME"
   :min-lein-version "2.0.0"
   :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
-                                   :creds :gpg}}
+                                   :username [:gpg :env/datomic_username]
+                                   :password [:gpg :env/datomic_password]}}
   :dependencies [[org.clojure/clojure "1.9.0-alpha19"]
                  [compojure "1.6.0"]
                  [ring/ring-defaults "0.2.1"]
