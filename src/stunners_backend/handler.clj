@@ -133,8 +133,9 @@
 
 (def app
   (-> app-routes
-      middleware/edn
+      middleware/handle-exceptions
       (middleware/authenticate credentials)
+      middleware/edn
       wrap-edn-params
       (wrap-defaults api-defaults)))
 

@@ -27,3 +27,11 @@
     (-> (handler request)
         (update :body pr-str)
         (update :headers (partial merge {"Content-Type" "application/edn"})))))
+
+(defn handle-exceptions [handler]
+  (fn [request]
+    (try
+      (handler request)
+      (catch Exception e
+        {:status 500
+         :body {:message (str "Error: " (.getMessage e))}}))))
