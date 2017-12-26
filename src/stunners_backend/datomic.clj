@@ -5,10 +5,11 @@
             [stunners-backend.schema :refer [schema]]))
 
 
-(def db-uri "datomic:dev://localhost:4334/hello")
+(def db-uri "datomic:ddb://eu-west-1/stunners-storage/main" #_"datomic:dev://localhost:4334/stunners")
 
 (defstate conn
-  :start (let [connection (d/connect db-uri)]
-           @(d/transact connection schema)
-           connection)
+  :start (do (d/create-database db-uri)
+             (let [connection (d/connect db-uri)]
+               @(d/transact connection schema)
+               connection))
   :stop (.release conn))

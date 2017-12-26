@@ -17,7 +17,8 @@
                  [clj-http "3.7.0"]
                  [cheshire "5.8.0"]
                  [metosin/spec-tools "0.5.1"]
-                 [mount "0.1.11"]]
+                 [mount "0.1.11"]
+                 [com.amazonaws/aws-java-sdk-dynamodb "1.11.82"]]
   :plugins [[lein-ring "0.12.2"]]
   :ring {:handler stunners-backend.handler/app
          :init stunners-backend.handler/init
