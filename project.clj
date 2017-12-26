@@ -16,9 +16,11 @@
                  [org.clojure/spec.alpha "0.1.143"]
                  [clj-http "3.7.0"]
                  [cheshire "5.8.0"]
-                 [metosin/spec-tools "0.5.1"]]
+                 [metosin/spec-tools "0.5.1"]
+                 [mount "0.1.11"]]
   :plugins [[lein-ring "0.12.2"]]
   :ring {:handler stunners-backend.handler/app
+         :init stunners-backend.handler/init
          :nrepl {:start? true}}
   :profiles
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]

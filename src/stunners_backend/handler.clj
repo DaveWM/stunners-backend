@@ -11,13 +11,10 @@
             [stunners-backend.specs]
             [clj-http.client :as http]
             [stunners-backend.datomic :refer [conn]]
-            [stunners-backend.schema :refer [schema]]
             [stunners-backend.utils :as utils]
             [stunners-backend.middleware :as middleware]
-            [spec-tools.core :as st]))
-
-
-@(d/transact conn schema)
+            [spec-tools.core :as st]
+            [mount.core :as mount]))
 
 (defroutes app-routes
   (GET "/health-check" [] {:status 200
@@ -140,3 +137,6 @@
       (middleware/authenticate credentials)
       wrap-edn-params
       (wrap-defaults api-defaults)))
+
+(defn init []
+  (mount/start))
