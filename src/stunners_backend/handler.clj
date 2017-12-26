@@ -57,16 +57,16 @@
   (GET "/appointments" {:keys [user/auth0-id params]}
        {:status 200
         :body (->> (d/q '[:find
-                        (pull ?a [* {:appointment/status [:db/ident]}])
-                        (pull ?pt [:db/id :db/ident])
-                        :where [?a :appointment/time]
-                        [?user :user/auth0-id ?auth0-id]
-                        (or [?a :appointment/stylist ?user]
-                            [?a :appointment/stylee ?user])
-                        [?a :appointment/product-types ?pt]
-                        :in $ ?auth0-id]
-                      (d/db conn)
-                      auth0-id)
+                          (pull ?a [* {:appointment/status [:db/ident]}])
+                          (pull ?pt [:db/id :db/ident])
+                          :where [?a :appointment/time]
+                          [?user :user/auth0-id ?auth0-id]
+                          (or [?a :appointment/stylist ?user]
+                              [?a :appointment/stylee ?user])
+                          [?a :appointment/product-types ?pt]
+                          :in $ ?auth0-id]
+                        (d/db conn)
+                        auth0-id)
                    utils/inline-enums
                    utils/split-main-related)})
 
@@ -90,14 +90,13 @@
                                 :where [?e :user/auth0-id ?auth0-id]
                                 :in $ ?auth0-id]
                               (d/db conn)
-                              auth0-id)]
+                              auth0-id)
+                  transaction (merge appointment {:location/address address
+                                                  :location/postcode postcode
+                                                  :appointment/status :appointment-status/pending
+                                                  :appointment/stylee stylee})]
               {:status 200
-               :body (-> (merge appointment {:location/address address
-                                             :location/postcode postcode
-                                             :appointment/status :appointment-status/pending
-                                             :appointment/stylee stylee})
-                         vector
-                         transact
+               :body (-> @(d/transact conn [transaction])
                          (select-keys [:tx-data]))})
             (utils/spec-failed-response :request/appointment appointment))))
 
