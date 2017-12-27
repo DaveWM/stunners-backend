@@ -5,7 +5,7 @@
             [datomic.api :as d]
             [clojure.core.async :refer [<!!]]
             [clojure.string :as str]
-            [stunners-backend.credentials :refer [credentials]]
+            [environ.core :refer [env]]
             [ring.middleware.edn :refer [wrap-edn-params]]
             [clojure.spec.alpha :as s]
             [stunners-backend.specs]
@@ -134,7 +134,9 @@
 (def app
   (-> app-routes
       middleware/handle-exceptions
-      (middleware/authenticate credentials)
+      (middleware/authenticate {:client-secret (env :auth0-client-secret)
+                                :client-id "Uc6xSnmrrj9L155vsIrpAhXrHnUMGX6w"
+                                :domain "dwmartin41.eu.auth0.com"})
       middleware/edn
       wrap-edn-params
       (wrap-defaults api-defaults)))

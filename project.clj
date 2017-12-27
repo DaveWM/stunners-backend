@@ -19,7 +19,8 @@
                  [cheshire "5.8.0"]
                  [metosin/spec-tools "0.5.1"]
                  [mount "0.1.11"]
-                 [com.amazonaws/aws-java-sdk-dynamodb "1.11.82"]]
+                 [com.amazonaws/aws-java-sdk-dynamodb "1.11.82"]
+                 [environ "1.1.0"]]
   :plugins [[lein-ring "0.12.1"]]
   :ring {:handler stunners-backend.handler/app
          :init stunners-backend.handler/init
