@@ -20,10 +20,12 @@
                  [metosin/spec-tools "0.5.1"]
                  [mount "0.1.11"]
                  [com.amazonaws/aws-java-sdk-dynamodb "1.11.82"]]
-  :plugins [[lein-ring "0.12.2"]]
+  :plugins [[lein-ring "0.12.1"]]
   :ring {:handler stunners-backend.handler/app
          :init stunners-backend.handler/init
          :nrepl {:start? true}}
   :profiles
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
-                        [ring/ring-mock "0.3.0"]]}})
+                        [ring/ring-mock "0.3.0"]]}
+   :uberjar {:aot :all}}
+  :uberjar-name "stunners-standalone.jar")
