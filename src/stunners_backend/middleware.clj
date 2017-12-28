@@ -41,6 +41,6 @@
   [handler]
   (fn [request]
     (let [response (handler request)]
-      (assoc-in response
-                [:headers "Access-Control-Allow-Origin"]
-                "*"))))
+      (-> response
+          (assoc-in [:headers "Access-Control-Allow-Origin"] "*")
+          (assoc-in [:headers "Access-Control-Allow-Credentials" "true"])))))
