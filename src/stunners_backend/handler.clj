@@ -138,6 +138,7 @@
                                 :client-id "Uc6xSnmrrj9L155vsIrpAhXrHnUMGX6w"
                                 :domain "dwmartin41.eu.auth0.com"})
       middleware/edn
+      middleware/wrap-cors
       wrap-edn-params
       (wrap-defaults api-defaults)))
 
