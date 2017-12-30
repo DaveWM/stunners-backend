@@ -12,7 +12,7 @@
                     (str/replace #"^\s*Bearer\s+" ""))
           decoded-token (jwt/validate token
                                       (jwt/signature (sign/hs256 (:client-secret credentials)))
-                                      (jwt/aud [(:client-id credentials)])
+                                      (jwt/aud [(:audience credentials)])
                                       (jwt/iss (:domain credentials))
                                       jwt/exp)]
       (if-let [{:keys [sub]} decoded-token]
