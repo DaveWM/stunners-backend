@@ -136,7 +136,7 @@
       middleware/handle-exceptions
       (middleware/authenticate {:client-secret (env :auth0-client-secret)
                                 :audience (env :auth0-audience)
-                                :domain "dwmartin41.eu.auth0.com"})
+                                :domain "https://dwmartin41.eu.auth0.com/"})
       middleware/edn
       middleware/wrap-cors
       wrap-edn-params
