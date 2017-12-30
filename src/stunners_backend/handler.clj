@@ -135,7 +135,7 @@
   (-> app-routes
       middleware/handle-exceptions
       (middleware/authenticate {:client-secret (env :auth0-client-secret)
-                                :client-id "Uc6xSnmrrj9L155vsIrpAhXrHnUMGX6w"
+                                :audience (env :auth0-audience)
                                 :domain "dwmartin41.eu.auth0.com"})
       middleware/edn
       middleware/wrap-cors
