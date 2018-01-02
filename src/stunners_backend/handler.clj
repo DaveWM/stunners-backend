@@ -13,6 +13,7 @@
             [stunners-backend.datomic :refer [conn]]
             [stunners-backend.utils :as utils]
             [stunners-backend.middleware :as middleware]
+            [stunners-backend.queries :as queries]
             [spec-tools.core :as st]
             [mount.core :as mount]))
 
@@ -33,11 +34,7 @@
           :body response}))
 
   (GET "/user" {:keys [user/auth0-id]}
-       (if-let [user (d/q '[:find (pull ?e [:db/id :user/name :user/email :user/phone-number :user/avatar :user/auth0-id :location/address]) .
-                            :where [?e :user/auth0-id ?id]
-                            :in $ ?id]
-                          (d/db conn)
-                          auth0-id)]
+       (if-let [user (queries/get-auth0-user (d/db conn) auth0-id)]
          {:status 200
           :body user}
          {:status 404
@@ -48,7 +45,8 @@
           (if (s/valid? :request/user user)
             {:status 200
              :body (-> @(d/transact conn [(assoc user :user/auth0-id auth0-id)])
-                       (select-keys [:tx-data]))}
+                       :db-after
+                       (queries/get-auth0-user auth0-id))}
             (utils/spec-failed-response :request/user params))))
 
   (GET "/appointments" {:keys [user/auth0-id params]}
