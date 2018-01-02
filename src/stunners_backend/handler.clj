@@ -43,13 +43,13 @@
          {:status 404
           :body {:message (str "User with auth0 id " auth0-id " not found")}}))
 
-  (POST "/user" {:keys [params]}
+  (POST "/user" {:keys [params :user/auth0-id]}
         (let [user (st/select-spec :request/user params)]
           (if (s/valid? :request/user user)
             {:status 200
-             :body (-> @(d/transact conn [user])
+             :body (-> @(d/transact conn [(assoc user :user/auth0-id auth0-id)])
                        (select-keys [:tx-data]))}
-            (utils/spec-failed-response :request/user user))))
+            (utils/spec-failed-response :request/user params))))
 
   (GET "/appointments" {:keys [user/auth0-id params]}
        {:status 200

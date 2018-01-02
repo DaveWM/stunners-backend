@@ -4,8 +4,8 @@
             [clojure.string :as str]
             [stunners-backend.enums :as enums]))
 
-(s/def :request/user (st/spec (s/keys :req [:user/name :user/email :user/avatar :user/phone-number :user/auth0-id]
-                                      :opt [:location/address])))
+(s/def :request/user (st/spec (s/keys :req [:user/name :user/email :user/phone-number]
+                                      :opt [:location/address :user/avatar])))
 
 (s/def :request/appointment (st/spec (s/keys :req [:location/lat :location/lng :appointment/stylist :appointment/time :appointment/product-types])))
 
