@@ -53,18 +53,7 @@
 
   (GET "/appointments" {:keys [user/auth0-id params]}
        {:status 200
-        :body (->> (d/q '[:find
-                          (pull ?a [* {:appointment/status [:db/ident]} {:appointment/product-types [:db/ident]}])
-                          :where [?a :appointment/time]
-                          [?user :user/auth0-id ?auth0-id]
-                          (or [?a :appointment/stylist ?user]
-                              [?a :appointment/stylee ?user])
-                          [?a :appointment/product-types ?pt]
-                          :in $ ?auth0-id]
-                        (d/db conn)
-                        auth0-id)
-                   utils/inline-enums
-                   utils/split-main-related)})
+        :body (queries/get-appointments (d/db conn) auth0-id)})
 
   (POST "/appointments" {:keys [user/auth0-id params]}
         (let [{:keys [location/lat location/lng] :as appointment}
@@ -93,7 +82,8 @@
                                                   :appointment/stylee stylee})]
               {:status 200
                :body (-> @(d/transact conn [transaction])
-                         (select-keys [:tx-data]))})
+                         :db-after
+                         (queries/get-appointments auth0-id))})
             (utils/spec-failed-response :request/appointment appointment))))
 
   (PUT "/appointments/:id" {:keys [user/auth0-id] {param-id :id :as params} :params}
