@@ -52,8 +52,7 @@
   (GET "/appointments" {:keys [user/auth0-id params]}
        {:status 200
         :body (->> (d/q '[:find
-                          (pull ?a [* {:appointment/status [:db/ident]}])
-                          (pull ?pt [:db/id :db/ident])
+                          (pull ?a [* {:appointment/status [:db/ident]} {:appointment/product-types [:db/ident]}])
                           :where [?a :appointment/time]
                           [?user :user/auth0-id ?auth0-id]
                           (or [?a :appointment/stylist ?user]
