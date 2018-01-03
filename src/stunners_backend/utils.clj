@@ -11,9 +11,11 @@
                         query-result))
 
 (defn split-main-related [query-result]
-  (let [[main & related] (->> query-result
-                              (apply map vector)
-                              (map distinct))]
+  (let [[main & related] (if (seq query-result)
+                           (->> query-result
+                                (apply map vector)
+                                (map distinct))
+                           [[]])]
     {:main main
      :related (flatten related)}))
 
