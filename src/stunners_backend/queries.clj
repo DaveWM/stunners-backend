@@ -13,11 +13,15 @@
 (defn get-appointments [db auth0-id]
   (->> (d/q '[:find
               (pull ?a [* {:appointment/status [:db/ident]} {:appointment/product-types [:db/ident]}])
+              (pull ?stylist [:db/id :user/name :user/avatar :user/phone-number :user/email])
+              (pull ?stylee [:db/id :user/name :user/avatar :user/phone-number :user/email])
               :where [?a :appointment/time]
               [?user :user/auth0-id ?auth0-id]
               (or [?a :appointment/stylist ?user]
                   [?a :appointment/stylee ?user])
               [?a :appointment/product-types ?pt]
+              [?a :appointment/stylist ?stylist]
+              [?a :appointment/stylee ?stylee]
               :in $ ?auth0-id]
             db
             auth0-id)
