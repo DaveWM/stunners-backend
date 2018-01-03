@@ -114,8 +114,11 @@
                   :body (let [transactions (map (fn [[k v]]
                                                   [:db/add appointment-id k v])
                                                 appointment-update)]
-                          (-> @(d/transact conn transactions)
-                              (select-keys [:tx-data])))})))
+                          {:main (-> @(d/transact conn transactions)
+                                     :db-after
+                                     (d/pull [:db/id {:appointment/status [:db/ident]}] appointment-id)
+                                     utils/inline-enums
+                                     vector)})})))
 
   (route/not-found {:status 404
                     :body {:message "route not found"}}))
