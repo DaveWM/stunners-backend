@@ -17,6 +17,8 @@
             [spec-tools.core :as st]
             [mount.core :as mount]))
 
+(def google-maps-key "AIzaSyCCCkqTdWj-Bk6ZnFVR4LaYy0AzlMEpez0")
+
 (defroutes app-routes
   (GET "/health-check" [] {:status 200
                            :body {:status :ok}})
@@ -69,7 +71,7 @@
               (st/select-spec :request/appointment params)]
           (if (s/valid? :request/appointment appointment)
             (let [{address-components :address_components address :formatted_address}
-                  (-> (str "https://maps.googleapis.com/maps/api/geocode/json?latlng=" lat "," lng)
+                  (-> (str "https://maps.googleapis.com/maps/api/geocode/json?latlng=" lat "," lng "&key=" google-maps-key)
                       (http/get {:as :json})
                       :body
                       :results
