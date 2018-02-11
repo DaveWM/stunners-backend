@@ -84,7 +84,7 @@
                :body (-> @(d/transact conn [transaction])
                          :db-after
                          (queries/get-appointments auth0-id))})
-            (utils/spec-failed-response :request/appointment appointment))))
+            (utils/spec-failed-response :request/appointment params))))
 
   (PUT "/appointments/:id" {:keys [user/auth0-id] {param-id :id :as params} :params}
        (let [appointment-id (Long/parseLong param-id)
@@ -99,7 +99,7 @@
              (d/pull db '[:appointment/stylist {:appointment/status [:db/ident]}] appointment-id)]
          (cond
            (not (s/valid? :request/appointment-update appointment-update))
-           (utils/spec-failed-response :request/appointment-update appointment-update)
+           (utils/spec-failed-response :request/appointment-update params)
 
            (nil? stylist-id) {:status 404
                               :body {:message "Specified appointment does not exist"}}
