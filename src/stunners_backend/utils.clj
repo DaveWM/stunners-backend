@@ -22,5 +22,5 @@
 (defn spec-failed-response [spec-key entity]
   {:status 400
    :headers {"Content-Type" "application/edn"}
-   :body (pr-str {:message "Invalid request"
-                  :explanation (s/explain-data spec-key entity)})})
+   :body {:message "Invalid request"
+          :explanation (s/explain-data spec-key entity)}})
