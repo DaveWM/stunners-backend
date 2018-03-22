@@ -9,7 +9,7 @@
                  [compojure "1.6.0"]
                  [ring/ring-defaults "0.2.1"]
                  [org.clojure/core.async "0.3.465"]
-                 [com.datomic/datomic-pro "0.9.5656"]
+                 [com.datomic/datomic-pro "0.9.5561"]
                  [org.eclipse.jetty/jetty-server "9.3.7.v20160115"]
                  [ring "1.6.0" :exclusions [org.eclipse.jetty/jetty-server]]
                  [jerks-whistling-tunes "0.2.4"]
@@ -19,7 +19,7 @@
                  [cheshire "5.8.0"]
                  [metosin/spec-tools "0.5.1"]
                  [mount "0.1.11"]
-                 [com.amazonaws/aws-java-sdk-dynamodb "1.11.82"]
+                 [org.postgresql/postgresql "9.3-1102-jdbc41"]
                  [environ "1.1.0"]]
   :plugins [[lein-ring "0.12.1"]]
   :ring {:handler stunners-backend.handler/app
