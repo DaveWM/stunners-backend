@@ -43,13 +43,6 @@
                        :db/valueType :db.type/double
                        :db/cardinality :db.cardinality/one}])
 
-(def filter-group-schema [{:db/ident :filter-group/label
-                           :db/valueType :db.type/string
-                           :db/cardinality :db.cardinality/one}
-                          {:db/ident :filter-group/product-types
-                           :db/valueType :db.type/ref
-                           :db/cardinality :db.cardinality/many}])
-
 (def product-type-schema (map #(hash-map :db/ident %) enums/product-type))
 
 (def product-schema [{:db/ident :product/type
@@ -84,5 +77,4 @@
                     product-type-schema
                     product-schema
                     appointment-schema
-                    stylist-schema
-                    filter-group-schema))
+                    stylist-schema))
