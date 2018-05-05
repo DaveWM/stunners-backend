@@ -126,7 +126,7 @@
 (def app
   (-> app-routes
       middleware/handle-exceptions
-      #_(middleware/authenticate {:client-secret (env :auth0-client-secret)
+      (middleware/authenticate {:client-secret (env :auth0-client-secret)
                                 :audience (env :auth0-audience)
                                 :domain "https://dwmartin41.eu.auth0.com/"})
       middleware/edn
