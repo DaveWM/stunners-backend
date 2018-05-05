@@ -126,12 +126,13 @@
 (def app
   (-> app-routes
       middleware/handle-exceptions
-      (middleware/authenticate {:client-secret (env :auth0-client-secret)
+      #_(middleware/authenticate {:client-secret (env :auth0-client-secret)
                                 :audience (env :auth0-audience)
                                 :domain "https://dwmartin41.eu.auth0.com/"})
       middleware/edn
       middleware/wrap-cors
       wrap-edn-params
+      middleware/add-current-time
       (wrap-defaults api-defaults)))
 
 (defn init []

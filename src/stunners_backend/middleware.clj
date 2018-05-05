@@ -1,7 +1,8 @@
 (ns stunners-backend.middleware
   (:require [clojure.string :as str]
             [jerks-whistling-tunes.core :as jwt]
-            [jerks-whistling-tunes.sign :as sign]))
+            [jerks-whistling-tunes.sign :as sign])
+  (:import (java.util Date)))
 
 (defn authenticate [handler credentials]
   "Authenticates using auth token in Authorization header, or query param if header not set. Adds the auth token onto the request as :token, and the user's auth0 id as :user/auth0-id"
@@ -44,3 +45,9 @@
       (-> response
           (assoc-in [:headers "Access-Control-Allow-Origin"] "*")
           (assoc-in [:headers "Access-Control-Allow-Credentials"] "true")))))
+
+(defn add-current-time
+  "Adds the current time to the request map"
+  [handler]
+  (fn [request]
+    (handler (assoc request :coeffects/current-time (Date.)))))
