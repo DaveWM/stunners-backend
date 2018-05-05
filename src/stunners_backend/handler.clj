@@ -55,9 +55,9 @@
        {:status 200
         :body (queries/get-appointments (d/db conn) auth0-id)})
 
-  (POST "/appointments" {:keys [user/auth0-id params]}
+  (POST "/appointments" {:keys [user/auth0-id coeffects/current-time params]}
         (let [{:keys [location/lat location/lng] :as appointment}
-              (st/select-spec :request/appointment params)]
+              (st/select-spec :request/appointment (assoc params :coeffects/current-time current-time))]
           (if (s/valid? :request/appointment appointment)
             (let [{address-components :address_components address :formatted_address}
                   (-> (str "https://maps.googleapis.com/maps/api/geocode/json?latlng=" lat "," lng "&key=" google-maps-key)
@@ -84,7 +84,7 @@
                :body (-> @(d/transact conn [transaction])
                          :db-after
                          (queries/get-appointments auth0-id))})
-            (utils/spec-failed-response :request/appointment params))))
+            (utils/spec-failed-response :request/appointment (assoc params :coeffects/current-time current-time)))))
 
   (PUT "/appointments/:id" {:keys [user/auth0-id] {param-id :id :as params} :params}
        (let [appointment-id (Long/parseLong param-id)

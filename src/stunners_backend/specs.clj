@@ -4,10 +4,17 @@
             [clojure.string :as str]
             [stunners-backend.enums :as enums]))
 
+(s/def :coeffects/current-time inst?)
+
+(s/def :request/coeffects (s/keys :req [:coeffects/current-time]))
+
 (s/def :request/user (st/spec (s/keys :req [:user/name :user/email :user/phone-number]
                                       :opt [:location/address :user/avatar])))
 
-(s/def :request/appointment (st/spec (s/keys :req [:location/lat :location/lng :appointment/stylist :appointment/time :appointment/product-types])))
+(s/def :request/appointment (st/spec (s/and (s/merge (s/keys :req [:location/lat :location/lng :appointment/stylist :appointment/time :appointment/product-types])
+                                                     :request/coeffects)
+                                            (fn [{:keys [appointment/time coeffects/current-time]}]
+                                              (.before current-time time)))))
 
 (s/def :request/appointment-update (st/spec (s/keys :req [:appointment/status])))
 
