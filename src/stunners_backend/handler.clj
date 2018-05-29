@@ -82,10 +82,12 @@
                                                     db
                                                     auth0-id)
                        stylist (d/entity db (:appointment/stylist appointment))
-                       tx-data (merge appointment {:location/address   address
-                                                   :location/postcode  postcode
-                                                   :appointment/status :appointment-status/pending
-                                                   :appointment/stylee stylee-id})
+                       tx-data (-> appointment
+                                   (dissoc :coeffects/current-time)
+                                   (merge {:location/address   address
+                                           :location/postcode  postcode
+                                           :appointment/status :appointment-status/pending
+                                           :appointment/stylee stylee-id}))
                        transaction @(d/transact conn [tx-data])]
 
                    (email/send! (:user/email stylist)
