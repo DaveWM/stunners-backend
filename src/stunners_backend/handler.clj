@@ -129,9 +129,9 @@
 
                  :else {:status 200
                         :body   (let [tx-data (map (fn [[k v]]
-                                                          [:db/add appointment-id k v])
-                                                        appointment-update)
-                                      transaction @(d/transact conn [tx-data])]
+                                                     [:db/add appointment-id k v])
+                                                   appointment-update)
+                                      transaction @(d/transact conn tx-data)]
 
                                   (email/send! (get-in appointment [:appointment/stylee :user/email])
                                                (str "Stunners: your appointment has been " (name (:appointment/status appointment-update)))
