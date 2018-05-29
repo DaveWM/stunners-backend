@@ -20,7 +20,8 @@
                  [metosin/spec-tools "0.5.1"]
                  [mount "0.1.11"]
                  [org.postgresql/postgresql "9.3-1102-jdbc41"]
-                 [environ "1.1.0"]]
+                 [environ "1.1.0"]
+                 [com.draines/postal "2.0.2"]]
   :plugins [[lein-ring "0.12.1"]]
   :ring {:handler stunners-backend.handler/app
          :init stunners-backend.handler/init
