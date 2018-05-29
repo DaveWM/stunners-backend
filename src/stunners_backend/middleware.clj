@@ -34,8 +34,9 @@
     (try
       (handler request)
       (catch Exception e
-        {:status 500
-         :body {:message (str "Error: " (.getMessage e))}}))))
+        (do (println e)
+            {:status 500
+             :body   {:message (str "Error: " (.getMessage e))}})))))
 
 (defn wrap-cors
   "Allow requests from all origins"
