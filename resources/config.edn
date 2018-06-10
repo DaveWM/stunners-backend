@@ -1,0 +1,7 @@
+{:datomic {:db-uri #or [#env DATOMIC_URI "datomic:sql://stunners?jdbc:postgresql://ec2-54-217-217-194.eu-west-1.compute.amazonaws.com:5432/dd5rk21rc395se?user=qnbfniesbkxoxq&password=5a4b6bd7099b9154d9213fa971a1f43624f3379f31cadc02b4b971a010c9b689&ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory"]}
+
+ :google-maps-key "AIzaSyCCCkqTdWj-Bk6ZnFVR4LaYy0AzlMEpez0"
+
+ :auth0 {:client-secret #env AUTH0_CLIENT_SECRET
+         :audience #env AUTH0_AUDIENCE
+         :domain "https://dwmartin41.eu.auth0.com/"}}

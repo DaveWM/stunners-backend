@@ -15,11 +15,10 @@
             [stunners-backend.middleware :as middleware]
             [stunners-backend.queries :as queries]
             [stunners-backend.email :as email]
+            [stunners-backend.config :refer [config]]
             [spec-tools.core :as st]
             [mount.core :as mount])
   (:import (java.text SimpleDateFormat)))
-
-(def google-maps-key "AIzaSyCCCkqTdWj-Bk6ZnFVR4LaYy0AzlMEpez0")
 
 (defroutes app-routes
            (GET "/health-check" [] {:status 200
@@ -62,7 +61,7 @@
                    (st/select-spec :request/appointment (assoc params :coeffects/current-time current-time))]
                (if (s/valid? :request/appointment appointment)
                  (let [{address-components :address_components address :formatted_address}
-                       (-> (str "https://maps.googleapis.com/maps/api/geocode/json?latlng=" lat "," lng "&key=" google-maps-key)
+                       (-> (str "https://maps.googleapis.com/maps/api/geocode/json?latlng=" lat "," lng "&key=" (:google-maps-key config))
                            (http/get {:as :json})
                            :body
                            :results
@@ -152,9 +151,7 @@
 (def app
   (-> app-routes
       middleware/handle-exceptions
-      (middleware/authenticate {:client-secret (env :auth0-client-secret)
-                                :audience      (env :auth0-audience)
-                                :domain        "https://dwmartin41.eu.auth0.com/"})
+      (middleware/authenticate (:auth0 config))
       middleware/edn
       middleware/wrap-cors
       wrap-edn-params

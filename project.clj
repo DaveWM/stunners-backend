@@ -21,7 +21,8 @@
                  [mount "0.1.11"]
                  [org.postgresql/postgresql "9.3-1102-jdbc41"]
                  [environ "1.1.0"]
-                 [com.draines/postal "2.0.2"]]
+                 [com.draines/postal "2.0.2"]
+                 [aero "1.1.3"]]
   :plugins [[lein-ring "0.12.1"]]
   :ring {:handler stunners-backend.handler/app
          :init stunners-backend.handler/init
@@ -31,4 +32,5 @@
                         [ring/ring-mock "0.3.0"]
                         [org.clojure/test.check "0.9.0"]]}
    :uberjar {:aot :all}}
-  :uberjar-name "stunners-standalone.jar")
+  :uberjar-name "stunners-standalone.jar"
+  :resource-paths ["resources"])
