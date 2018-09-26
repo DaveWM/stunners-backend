@@ -1,4 +1,4 @@
-{:datomic {:db-uri #or [#env DATOMIC_URI "datomic:sql://stunners?jdbc:postgresql://ec2-54-217-217-194.eu-west-1.compute.amazonaws.com:5432/dd5rk21rc395se?user=qnbfniesbkxoxq&password=5a4b6bd7099b9154d9213fa971a1f43624f3379f31cadc02b4b971a010c9b689&ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory"]}
+{:datomic {:db-uri #or [#env DATOMIC_URI "datomic:sql://stunners?jdbc:postgresql://ec2-54-75-226-228.eu-west-1.compute.amazonaws.com:5432/d2alg7a8v9j2kj?user=ghsnbkisosylne&password=cc5f6708319d8f0ecb6c04f1e52afa6781ff369d4ba157fb889ab15d08c3cea1&ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory"]}
 
  :google-maps-key "AIzaSyCCCkqTdWj-Bk6ZnFVR4LaYy0AzlMEpez0"
 
