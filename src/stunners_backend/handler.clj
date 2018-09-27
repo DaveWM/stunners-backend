@@ -17,7 +17,7 @@
             [stunners-backend.email :as email]
             [stunners-backend.config :refer [config]]
             [spec-tools.core :as st]
-            [mount.core :as mount])
+            [mount.core :as mount :refer [defstate]])
   (:import (java.text SimpleDateFormat)))
 
 (defroutes app-routes
@@ -148,15 +148,15 @@
            (route/not-found {:status 404
                              :body   {:message "route not found"}}))
 
-(def app
-  (-> app-routes
-      middleware/handle-exceptions
-      (middleware/authenticate (:auth0 config))
-      middleware/edn
-      middleware/wrap-cors
-      wrap-edn-params
-      middleware/add-current-time
-      (wrap-defaults api-defaults)))
+(defstate app
+  :start (-> app-routes
+             middleware/handle-exceptions
+             (middleware/authenticate (:auth0 config))
+             middleware/edn
+             middleware/wrap-cors
+             wrap-edn-params
+             middleware/add-current-time
+             (wrap-defaults api-defaults)))
 
 (defn init []
   (mount/start))

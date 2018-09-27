@@ -4,4 +4,4 @@
 
 
 (defstate config
-  :start (read-config "resources/config.edn"))
+  :start (read-config (clojure.java.io/resource "config.edn")))
