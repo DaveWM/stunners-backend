@@ -26,7 +26,8 @@
   :plugins [[lein-ring "0.12.1"]]
   :ring {:handler stunners-backend.handler/app
          :init stunners-backend.handler/init
-         :nrepl {:start? true}}
+         :nrepl {:start? true
+                 :port 8081}}
   :profiles
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                         [ring/ring-mock "0.3.0"]
