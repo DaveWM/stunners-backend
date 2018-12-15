@@ -1,4 +1,4 @@
-{:datomic {:db-uri #or [#env DATOMIC_URI "datomic:sql://stunners?jdbc:postgresql://35.189.243.246:5432/postgres?user=postgres&password=Nk095X77U25y"]}
+{:datomic {:db-uri #or [#env DATOMIC_URI "datomic:dev://46.101.46.183:4334/stunners"]}
 
  :google-maps-key "AIzaSyCCCkqTdWj-Bk6ZnFVR4LaYy0AzlMEpez0"
 
