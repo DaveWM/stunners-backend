@@ -1,4 +1,6 @@
-(ns stunners-backend.example-data)
+(ns stunners-backend.example-data
+  (:require [stunners-backend.datomic :refer [conn]]
+            [datomic.api :as d]))
 
 (def txs [[:db/add "dave" :user/name "Dave Martin"]
           [:db/add "dave" :location/address "3 Gassiot Road, Tooting, London, SW178LB"]
@@ -46,17 +48,6 @@
           [:db/add "d" :product/cost 8.99]
           [:db/add "d" :product/stylist "cristina"]
 
-          [:db/add "f1" :filter-group/label "Hair"]
-          [:db/add "f1" :filter-group/product-types :product-type/haircut]
-          [:db/add "f2" :filter-group/label "Nails"]
-          [:db/add "f2" :filter-group/product-types :product-type/nails]
-          [:db/add "f3" :filter-group/label "Body"]
-          [:db/add "f3" :filter-group/product-types :product-type/waxing]
-          [:db/add "f4" :filter-group/label "Full Package"]
-          [:db/add "f4" :filter-group/product-types :product-type/haircut]
-          [:db/add "f4" :filter-group/product-types :product-type/waxing]
-          [:db/add "f4" :filter-group/product-types :product-type/nails]
-
           [:db/add "app" :appointment/time #inst "2018-01-02T12:00:00.000Z"]
           [:db/add "app" :appointment/stylist "dave"]
           [:db/add "app" :appointment/stylee "cristina"]
@@ -66,3 +57,7 @@
           [:db/add "app" :appointment/product-types :product-type/haircut]
           [:db/add "app" :appointment/product-types :product-type/waxing]
           [:db/add "app" :appointment/status :appointment-status/confirmed]])
+
+
+(comment
+  (d/transact conn txs))
