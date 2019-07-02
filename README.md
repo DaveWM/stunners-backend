@@ -1,19 +1,12 @@
 # stunners-backend
 
-FIXME
+## Setting up
 
-## Prerequisites
-
-You will need [Leiningen][] 2.0.0 or above installed.
-
-[leiningen]: https://github.com/technomancy/leiningen
-
-## Running
-
-To start a web server for the application, run:
-
-    lein ring server
+* Set up an application in [Auth0](https://manage.auth0.com) - make sure the "JsonWebToken Signature Algorithm" is set to "RS256"
+* Get a [Google Maps API key](https://developers.google.com/maps/documentation/javascript/get-api-key)
+* Set up the env vars (see `config.edn`)
+* Run `lein ring server-headless`
 
 ## License
 
-Copyright © 2017 FIXME
+GPL V3

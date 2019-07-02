@@ -1,6 +1,5 @@
 (defproject stunners-backend "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+  :description "Backend for the Stunners mobile app"
   :min-lein-version "2.0.0"
   :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
                                    :username [:gpg :env/datomic_username]
