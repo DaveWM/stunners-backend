@@ -1,7 +1,7 @@
-{:datomic {:db-uri #or [#env DATOMIC_URI "datomic:dev://46.101.46.183:4334/stunners"]}
+{:datomic {:db-uri #env DATOMIC_URI}
 
- :google-maps-key "AIzaSyCCCkqTdWj-Bk6ZnFVR4LaYy0AzlMEpez0"
+ :google-maps-key #env GOOGLE_MAPS_KEY
 
  :auth0 {:client-secret #env AUTH0_CLIENT_SECRET
          :audience #env AUTH0_AUDIENCE
-         :domain "https://dwmartin41.eu.auth0.com/"}}
+         :domain #env AUTH0_DOMAIN}}
